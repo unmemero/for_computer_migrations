@@ -1,0 +1,25 @@
+# Ghostty Custom Glassmorphism Configuration
+
+# Font Settings
+font-family = "FiraCode Nerd Font"
+font-size = 11
+font-feature = calt
+font-feature = liga
+
+# Color Theme
+theme = Dracula
+
+# Glassmorphism/Transparency (supported on KDE Plasma Wayland)
+background-opacity = 0.85
+background-blur = true
+
+# Layout and Window Styling
+window-padding-x = 12
+window-padding-y = 12
+window-decoration = true
+confirm-close-surface = false
+
+# Cursor Styling
+cursor-style = bar
+cursor-style-blink = true
+cursor-color = #50fa7b
