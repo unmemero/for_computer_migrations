@@ -80,9 +80,11 @@ abbr -a miami       'nordvpn c United_States Miami'
 abbr -a utepconnect 'sudo openconnect --protocol=gp myvpn.utep.edu'
 
 # Clipboard helpers
-abbr -a clipit  'xclip -selection clipboard'
-abbr -a pasteit 'xclip -o -selection clipboard'
-abbr -a qrscan  'clipit -t image/png -o > /tmp/clipboard_image.png && zbarimg /tmp/clipboard_image.png | grep "QR-Code:" | sed "s/QR-Code://" | clipit'
+abbr -a pbcopy 'wl-copy'
+abbr -a pbpaste 'wl-paste'
+
+# Rust env sourcing is skipped because Fish isn't POSIX-compatible.
+# Cargo bin path is already added to PATH via fish_add_path at the top of this file.
 
 # Archive helpers
 abbr -a unpack  'tar -xvzf'
@@ -128,6 +130,35 @@ end
 function md2pdf --description 'Convert Markdown → PDF with pandoc'
     set -l base (string replace -r '\\.md$' '' (basename $argv[1]))
     pandoc $argv[1] -o "$base".pdf
+end
+
+function psearch --description 'Search for a process'
+    read -l --prompt-str 'Process(es) separated by |: ' process
+    test -z "$process"; and return
+
+    set -l results (ps -eo pid:7,user:10,%cpu:5,%mem:5,etime:10,args --sort=-%cpu | tail -n +2 | grep -v 'grep' | grep -i -E "$process")
+
+    if test -n "$results"
+        set -l cols (tput cols)
+        set -l indent 42
+        set -l cmd_width (math "max(20, $cols - $indent)")
+
+        printf "\e[1;34m%7s %-10s %5s %5s %10s %s\e[0m\n" "PID" "USER" "%CPU" "%MEM" "ELAPSED" "COMMAND"
+        printf "\e[90m%s\e[0m\n" (string repeat -n $cols "─")
+
+        for line in $results
+            set -l meta (string sub -l $indent -- "$line")
+            set -l cmd (string sub -s (math $indent + 1) -- "$line")
+            set -l wrapped (printf "%s\n" "$cmd" | fold -s -w $cmd_width)
+
+            printf "%s%s\n" "$meta" "$wrapped[1]" | grep --color=always -i -E "$process|\$"
+            for w in $wrapped[2..-1]
+                printf "%"$indent"s%s\n" "" "$w" | grep --color=always -i -E "$process|\$"
+            end
+        end
+    else
+        echo (set_color red)"Nothing found for '$process'."(set_color normal)
+    end
 end
 
 # Clean up legacy lt abbreviation to allow the lt function to take precedence
